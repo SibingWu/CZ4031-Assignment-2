@@ -7,7 +7,7 @@ def get_conj(start=False):
     # get conjunction in natural language
     if start:
         return "At first, "
-    return random.choice(['Then, ', 'Next, ', 'Afterwards, ', 'After that', 'Moving on, ', 'Subsequently, '])
+    return random.choice([' Then, ', ' Next, ', ' Afterwards, ', ' After that, ', ' Moving on, ', ' Subsequently, '])
 
 
 def parse_plan(query_plan, start=False):
@@ -22,21 +22,6 @@ def parse_plan(query_plan, start=False):
     return parsed
 
 
-"""
-Query plan
-@:param Node Type
-@:Parallel Aware
-@:Async Capable
-@:Relation Name
-@:Alias
-@:Filter
-@:Startup Cost
-@:Total Cost
-@:Plan Rows
-@:Plan Width
-"""
-
-
 ################################### SCAN ####################################
 def sequential_scan(query_plan, start=False):
     sen = get_conj(start)
@@ -44,7 +29,8 @@ def sequential_scan(query_plan, start=False):
     if "Relation Name" in query_plan:
         sen += '`{}`'.format(query_plan['Relation Name'])
     if 'Alias' in query_plan:
-        sen += ' with alias `{}`'.format(query_plan['Alias'])
+        if query_plan['Relation Name'] != query_plan['Alias']:
+            sen += ' with alias `{}`'.format(query_plan['Alias'])
     sen += '.'
     if 'Filter' in query_plan:
         sen += ' And it is filtered with the condition {}.'.format(query_plan['Filter'].replace('::text', '').replace('::integer[]', ''))
@@ -118,7 +104,7 @@ def hash_join(query_plan, start=False):
     sen += annotate(query_plan['Plans'][0]) + ' '
 
     sen += 'The above result are joined by Hash {} Join'.format(query_plan['Join Type'])
-    if 'Hash Cond' in query_plan['Join Type']:
+    if 'Hash Cond' in query_plan:
         sen += ' with hash condition {}.'.format(query_plan['Hash Cond'].replace('::text', ''))
     else:
         sen += '.'
@@ -149,7 +135,7 @@ def merge_join(query_plan, start=False):
     return sen
 
 
-################################### OTHER? ####################################
+################################### OTHER ####################################
 def aggregate(query_plan, start=False):
     sen = ''
 
@@ -222,6 +208,7 @@ def groupby(query_plan, start=False):
 
 def hash(query_plan, start=False):
     sen = ''
+    print(query_plan)
 
     if 'Plans' in query_plan:
         sen += annotate(query_plan['Plans'][0], start)
@@ -236,7 +223,7 @@ def limit(query_plan, start=False):
     sen = ''
 
     sen += annotate(query_plan['Plans'][0], start)
-    sen += ' Limited with {} entries.'.format(query_plan['Plan Rows'])
+    sen += 'The result is limited with {} entries.'.format(query_plan['Plan Rows'])
 
     return sen
 
@@ -261,7 +248,7 @@ def materialize(query_plan, start=False):
 def nested_loop(query_plan, start=False):
     sen = ''
 
-    sen += annotate(query_plan['Plans'], start)
+    sen += annotate(query_plan['Plans'][0], start)
     sen += annotate(query_plan['Plans'][1])
 
     return sen
@@ -318,6 +305,7 @@ def unique(query_plan, start=False):
 def unrecognize(query_plan, start=False):
     # parser for unrecognized nodes
     sen = ''
+    print(query_plan['Node Type'])
     sen += '{}execute {}.'.format(get_conj(start), query_plan['Node Type'])
     if 'Plans' in query_plan:
         for obj in query_plan['Plans']:
@@ -331,9 +319,9 @@ class ParserSelector:
 
     def __init__(self):
         """ Init Class """
-        self.unrecognize = unrecognize
+        self.generic_parser = unrecognize
 
-        self.hash_join = hash_join
+        self.Hash_Join = hash_join
         self.Sort = sort
         self.Aggregate = aggregate
         self.Seq_Scan = sequential_scan
@@ -372,11 +360,11 @@ def initplan(query_plan, start=False):
 def annotate(query_plan, start=False):
     selector = ParserSelector()
     try:
-        parser = getattr(selector, query_plan["Node Type"].replace(" ", "_"))
+        annotator = getattr(selector, query_plan["Node Type"].replace(" ", "_"))
     except:
-        parser = selector.unrecognize
+        annotator = selector.unrecognize
     parsed_plan = initplan(query_plan, start)
-    parsed_plan += parser(query_plan, start)
+    parsed_plan += annotator(query_plan, start)
     return parsed_plan
 
 
