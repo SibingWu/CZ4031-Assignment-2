@@ -43,17 +43,15 @@ class basicWindow(QWidget):
 
     def onclick_generate(self):
         queryTxt = self.query_ta.toPlainText()
-        select_schema = str(self.schema_cb.currentText())
         dic = {
             "query": queryTxt,
-            "schema": select_schema
             }
         data_json = json.dumps(dic)
     	#emit json
     	#get json
         result = json.loads(data_json)
-        #self.anotate_ta.setPlainText(result['query'])
-        self.anotate_ta.setPlainText(result['schema'])
+        self.anotate_ta.setPlainText(result['query'])
+        #self.anotate_ta.setPlainText(result['schema'])
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
