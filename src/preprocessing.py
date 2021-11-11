@@ -43,8 +43,9 @@ class Preprocessing:
 
         logging.info('Annotating query plan for query plan: {}'.format(json.dumps(self.query_plan, indent=4)))
         try:
-            self.annotated_plan = annotate(self.query_plan, True)
+            self.annotated_plan = annotate(self.query_plan, start=True)
         except Exception as e:
+            logging.error('ANNOTATION')
             logging.error(e)
         logging.info(self.annotated_plan)
 
@@ -53,7 +54,13 @@ class Preprocessing:
 
 if __name__ == '__main__':
     p = Preprocessing('localhost', '5432', 'postgres', 'postgres', '123456')
-    parsed_plan = p.parse("select * from customer as c where c_nationkey in (select c_nationKey from customer as c2 where c_address='xGCOEAUjUNG');")
+    parsed_plan = p.parse('''
+    select count(*)
+    from customer as c
+    where c_nationkey IN (1,2,3,4)
+    group by c_nationkey
+    limit 2;
+    ''')
     print(parsed_plan)
     annotation = p.annotate(parsed_plan)
     print(annotation)
