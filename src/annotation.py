@@ -10,6 +10,27 @@ def get_conj(start=False):
     return random.choice(['Then, ', 'Next, ', 'Afterwards, ', 'After that', 'Moving on, ', 'Subsequently, '])
 
 
+def parse_plan(query_plan, start=False):
+    """ Parse json format of query plan """
+    selector = ParserSelector()
+    try:
+        parser = getattr(selector, query_plan["Node Type"].replace(" ", "_"))
+    except:
+        parser = selector.unrecognize
+    parsed:str = initplan(query_plan, start)
+    parsed += parser(query_plan, start)
+    return parsed
+
+
+def unrecognize(query_plan, start=False):
+    # parser for unrecognized nodes
+    parsed = get_conj(start)
+    parsed += "do " + query_plan["Node Type"] + "."
+    if "Plans" in query_plan:
+        for child in query_plan["Plans"]:
+            parsed += " " + parse_plan(child)
+    return parsed
+
 """
 Query plan
 @:param Node Type
@@ -26,8 +47,8 @@ Query plan
 
 
 ################################### SCAN ####################################
-def sequential_scan(query_plan):
-    sen = get_conj()
+def sequential_scan(query_plan, start=False):
+    sen = get_conj(start)
     sen += 'a sequential scan is performed on the relation '
     if "Relation Name" in query_plan:
         sen += '`{}`'.format(query_plan['Relation Name'])
@@ -35,28 +56,67 @@ def sequential_scan(query_plan):
         sen += ' with alias `{}`'.format(query_plan['Alias'])
     sen += '.'
     if 'Filter' in query_plan:
-        sen += ' And it is filtered with the condition {}.'.format(query_plan['Filter'].replace('::text', ''))
+        sen += ' Then it is filtered with the condition {}.'.format(query_plan['Filter'].replace('::text', ''))
     return sen
 
 
-def subquery_scan(query_plan):
-    pass
+def subquery_scan(query_plan, start=False):
+    sen = ""
+    if 'Plans' in query_plan:
+        # Parse each child node first
+        for child in query_plan['Plans']:
+            sen += parse_plan(child, start) + " "
+            if start:
+                start = False
+    # After finishing all children, go back to the original node.
+    sen += get_conj(start)
+    sen += 'Subquery Scan is performed by output the results of the previous operations'
+    sen += '(the purpose of Subquery scan is mainly for internal logging).'
+    return sen
 
 
-def cte_scan(query_plan):
-    pass
+def cte_scan(query_plan, start=False):
+    sen = get_conj(start)
+    # Parse the values scan
+    if query_plan["Node Type"] == "CTE Scan":
+        sen += 'it does a CTE scan through the in-memory table '
+        sen += '`{}`'.format(query_plan['CTE Name'])
+        if "Index Cond" in query_plan:
+            sen += " with condition(s) `{}`".format(query_plan["Index Cond"].replace('::text', ''))
+        sen += "."
+        if "Filter" in query_plan:
+            sen += ' Then it is filtered with the condition {}.'.format(query_plan['Filter'].replace('::text', ''))
+    return sen
 
 
-def function_scan(query_plan):
-    pass
+def function_scan(query_plan, start=False):
+    sen = get_conj(start)
+    sen += "it runs the function " + query_plan["Function Name"]
+    sen += " and returns the recordset as if they were rows read from a table."
+    return sen
 
 
-def index_scan(query_plan):
-    pass
+def index_scan(query_plan, start=False):
+    sen = get_conj(start)
+    # Parse the index scan or index only scan
+    sen += "it does an index scan by using an index table "+ query_plan["Index Name"]
+    if "Index Cond" in query_plan:
+        sen += " with condition(s) `{}`".format(query_plan["Index Cond"].replace('::text', ''))
+
+    if query_plan["Node Type"] == "Index Scan":
+        sen += ". Next, it revisits the table `{}` and fetches rows that match index.".format(query_plan["Relation Name"])
+    elif query_plan["Node Type"] == "Index Only Scan":
+        sen += ". It then returns the matches found in index table scan."
+
+    if "Filter" in query_plan:
+        sen += ' Then it is filtered with the condition {}.'.format(query_plan['Filter'].replace('::text', ''))
+    return sen
 
 
-def values_scan(query_plan):
-    pass
+def values_scan(query_plan, start=False):
+    sen = get_conj(start)
+    sen += "it simply scan through the given values of the query."
+    return sen
 
 
 ################################### JOIN ####################################
@@ -109,17 +169,12 @@ def unique(query_plan):
     pass
 
 
-def unrecognize(query_plan):
-    # generic parser
-    pass
-
-
 class ParserSelector:
     """ ParserSelectorClass """
 
     def __init__(self):
         """ Init Class """
-        self.unrecognize = unrecognize()
+        self.unrecognize = unrecognize
 
         self.hash_join = hash_join
         self.Sort = sort
@@ -142,31 +197,30 @@ class ParserSelector:
         self.Group = groupby
 
 
-# COPIED!! NEED REPHRASE!!
-def initplan(plan, start=False):
+#
+def initplan(query_plan, start=False):
     """ Check for InitPlan """
-    result = ""
+    sen = ""
 
-    if "Parent Relationship" in plan:
-        if plan["Parent Relationship"] == "InitPlan":
-            result = get_conj(start)
-            result += "the " + plan["Node Type"]
-            result += " node and its subsequent child node is executed first"
-            result += " since the result from this node needs to be calculated first"
-            result += " and it is only calculated once for the whole query. "
-            result += "The plan is as follows:"
-
-    return result
+    if "Parent Relationship" in query_plan:
+        if query_plan["Parent Relationship"] == "InitPlan":
+            sen = get_conj(start)
+            sen += "the " + query_plan["Node Type"]
+            sen += " node with its subsequent child node is executed first"
+            sen += " for the result is only calculated once and may be needed subsequently."
+            sen += "The plan is as follows:"
+    return sen
 
 
 def annotate(query_plan, start=False):
+    parsed = ""
     selector = ParserSelector()
     try:
         parser = getattr(selector, query_plan["Node Type"].replace(" ", "_"))
     except:
-        parser = selector.generic_parser
-    parsed_plan = initplan(query_plan, start)
-    parsed_plan += parser(query_plan, start)
-    return parsed_plan
+        parser = selector.unrecognize
+    parsed = initplan(query_plan, start)
+    parsed += parser(query_plan, start)
+    return parsed
 
 

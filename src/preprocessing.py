@@ -43,7 +43,7 @@ class Preprocessing:
 
         logging.info('Annotating query plan for query plan: {}'.format(json.dumps(self.query_plan, indent=4)))
         try:
-            self.annotated_plan = annotate(self.query_plan)
+            self.annotated_plan = annotate(self.query_plan, True)
         except Exception as e:
             logging.error(e)
         logging.info(self.annotated_plan)
