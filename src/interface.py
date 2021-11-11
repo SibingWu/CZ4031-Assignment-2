@@ -23,18 +23,6 @@ class basicWindow(QWidget):
         self.title_lbl.setStyleSheet("QLabel{font-size: 18pt;}")
         grid_layout.addWidget(self.title_lbl, 0, 0)
 
-        self.schema_lbl = QLabel("Schema: ", self)
-        grid_layout.addWidget(self.schema_lbl, 1, 0)
-
-        arr = ['region', 'nation', 'part', 'supplier', 'partsupp',
-                'customer', 'orders', 'lineitem']
-
-        self.schema_cb = QComboBox()
-        for x in range(len(arr)):
-            self.schema_cb.addItem(arr[x], x)
-        self.schema_cb.currentIndexChanged.connect(self.date_selectionchange)
-        grid_layout.addWidget(self.schema_cb, 1, 1)
-
         self.query_lbl = QLabel("Query: ", self)
         grid_layout.addWidget(self.query_lbl, 2, 0)
 
@@ -62,10 +50,8 @@ class basicWindow(QWidget):
 
     def onclick_generate(self):
         queryTxt = self.query_ta.toPlainText()
-        select_schema = str(self.schema_cb.currentText())
         dic = {
             "query": queryTxt,
-            "schema": select_schema
             }
         data_json = json.dumps(dic)
         # emit json
@@ -85,6 +71,7 @@ class basicWindow(QWidget):
 
         return "this is a hard coded annotation."
 
+      
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     windowExample = basicWindow()
