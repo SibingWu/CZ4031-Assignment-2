@@ -1,3 +1,4 @@
+import logging
 import sys
 import json
 from PyQt5.QtWidgets import *
@@ -9,7 +10,7 @@ class basicWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
-        # self.p = Preprocessing('localhost', '5432', 'postgres', 'postgres', '123456')
+        self.p = Preprocessing('localhost', '5432', 'postgres', 'postgres', '123456')
 
     def initUI(self):
 
@@ -50,6 +51,7 @@ class basicWindow(QWidget):
 
     def onclick_generate(self):
         queryTxt = self.query_ta.toPlainText()
+        print(queryTxt)
         dic = {
             "query": queryTxt,
             }
@@ -63,13 +65,15 @@ class basicWindow(QWidget):
         # self.anotate_ta.setPlainText(result['schema'])
 
     def get_annotation(self, queryTxt):
-        # parsed_plan = self.p.parse(queryTxt)
-        # # print(parsed_plan)
-        # annotation = self.p.annotate(parsed_plan)
-        # # print(annotation)
-        # return annotation
+        try:
+            parsed_plan = self.p.parse(queryTxt)
+            annotation = self.p.annotate(parsed_plan)
 
-        return "this is a hard coded annotation."
+            return annotation
+        except Exception as e:
+            logging.error(e)
+            self.p.conn.rollback()
+            return 'Invalid query input'
 
       
 if __name__ == "__main__":

@@ -146,7 +146,7 @@ def merge_join(query_plan, start=False):
     else:
         sen += '.'
 
-    return sen;
+    return sen
 
 
 ################################### OTHER? ####################################
