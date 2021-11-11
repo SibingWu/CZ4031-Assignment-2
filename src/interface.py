@@ -1,12 +1,15 @@
 import sys
 import json
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+
+from preprocessing import Preprocessing
+
 
 class basicWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
+        # self.p = Preprocessing('localhost', '5432', 'postgres', 'postgres', '123456')
 
     def initUI(self):
 
@@ -54,8 +57,8 @@ class basicWindow(QWidget):
         grid_layout.addWidget(self.anotate_ta, 6, 0, 1, 4)
 
     def date_selectionchange(self, selected):
-    	x = 0
-    	#does something when selecting schema
+        x = 0
+        #does something when selecting schema
 
     def onclick_generate(self):
         queryTxt = self.query_ta.toPlainText()
@@ -65,11 +68,22 @@ class basicWindow(QWidget):
             "schema": select_schema
             }
         data_json = json.dumps(dic)
-    	#emit json
-    	#get json
-        result = json.loads(data_json)
-        #self.anotate_ta.setPlainText(result['query'])
-        self.anotate_ta.setPlainText(result['schema'])
+        # emit json
+        annotation = self.get_annotation(queryTxt)
+        self.anotate_ta.setPlainText(annotation)
+        # get json
+        # result = json.loads(data_json)
+        # self.anotate_ta.setPlainText(result['query'])
+        # self.anotate_ta.setPlainText(result['schema'])
+
+    def get_annotation(self, queryTxt):
+        # parsed_plan = self.p.parse(queryTxt)
+        # # print(parsed_plan)
+        # annotation = self.p.annotate(parsed_plan)
+        # # print(annotation)
+        # return annotation
+
+        return "this is a hard coded annotation."
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
