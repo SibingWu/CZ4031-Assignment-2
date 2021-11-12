@@ -29,6 +29,7 @@
      - Port: 5432
      - Username: postgres
      - Password: 123456
+ - Click **Connect to database** button
  - Enter query in prompt graphic window **Query** text box (**end query with ;**)
  - Click **Generate** button
  - View annotation in **Annotated Query** text box
