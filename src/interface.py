@@ -20,34 +20,76 @@ class basicWindow(QWidget):
         grid_layout = QGridLayout()
         self.setLayout(grid_layout)
 
-        self.title_lbl = QLabel("Query", self)
-        self.title_lbl.setStyleSheet("QLabel{font-size: 18pt;}")
-        grid_layout.addWidget(self.title_lbl, 0, 0)
+        self.host_lbl = QLabel("Host: ", self)
+        grid_layout.addWidget(self.host_lbl, 0, 0)
+        self.host_tb = QLineEdit(self)
+        self.host_tb.setFixedWidth(200)
+        self.host_tb.setText("localhost")
+        grid_layout.addWidget(self.host_tb, 0, 1)
+
+        self.db_lbl = QLabel("Database", self)
+        grid_layout.addWidget(self.db_lbl, 1, 0)
+        self.db_tb = QLineEdit(self)
+        self.db_tb.setFixedWidth(200)
+        self.db_tb.setText("postgres")
+        grid_layout.addWidget(self.db_tb, 1, 1)
+
+        self.port_lbl = QLabel("Port: ", self)
+        grid_layout.addWidget(self.port_lbl, 2, 0)
+        self.port_tb = QLineEdit(self)
+        self.port_tb.setFixedWidth(200)
+        self.port_tb.setText("5432")
+        grid_layout.addWidget(self.port_tb, 2, 1)
+
+        self.user_lbl = QLabel("Username: ", self)
+        grid_layout.addWidget(self.user_lbl, 3, 0)
+        self.user_tb = QLineEdit(self)
+        self.user_tb.setFixedWidth(200)
+        self.user_tb.setText("postgres")
+        grid_layout.addWidget(self.user_tb, 3, 1)
+
+        self.pw_lbl = QLabel("Password: ", self)
+        grid_layout.addWidget(self.pw_lbl, 4, 0)
+        self.pw_tb = QLineEdit(self)
+        self.pw_tb.setFixedWidth(200)
+        self.pw_tb.setText("123456")
+        self.pw_tb.setEchoMode(QLineEdit.Password)
+        grid_layout.addWidget(self.pw_tb, 4, 1)
+
+        self.connect_button = QPushButton('Connect to database', self)
+        self.connect_button.setFixedWidth(400)
+        self.connect_button.clicked.connect(self.onclick_connect)
+        grid_layout.addWidget(self.connect_button, 5, 0, 1, 3)
 
         self.query_lbl = QLabel("Query: ", self)
-        grid_layout.addWidget(self.query_lbl, 2, 0)
+        grid_layout.addWidget(self.query_lbl, 6, 0)
 
         self.query_ta = QPlainTextEdit(self)
         self.query_ta.setFixedHeight(300)
         self.query_ta.setPlaceholderText("Enter query here.")
-        grid_layout.addWidget(self.query_ta, 3, 0, 1, 4)
+        grid_layout.addWidget(self.query_ta, 7, 0, 1, 4)
 
         self.generate_button = QPushButton('Generate', self)
         self.generate_button.setFixedWidth(300)
         self.generate_button.clicked.connect(self.onclick_generate)
-        grid_layout.addWidget(self.generate_button, 4, 0, 1, 2)
+        grid_layout.addWidget(self.generate_button, 8, 0, 1, 2)
 
         self.anotate_lbl = QLabel("Annotated Query: ", self)
-        grid_layout.addWidget(self.anotate_lbl, 5, 0)
+        grid_layout.addWidget(self.anotate_lbl, 9, 0)
 
         self.anotate_ta = QPlainTextEdit(self)
         self.anotate_ta.setFixedHeight(300)
         self.anotate_ta.setReadOnly(True)
-        grid_layout.addWidget(self.anotate_ta, 6, 0, 1, 4)
+        grid_layout.addWidget(self.anotate_ta, 10, 0, 1, 4)
 
-    def date_selectionchange(self, selected):
-        x = 0
-        #does something when selecting schema
+    def onclick_connect(self):
+        host = self.host_tb.text()
+        database = self.db_tb.text()
+        port = self.port_tb.text()
+        username = self.user_tb.text()
+        password = self.pw_tb.text()
+        self.p = Preprocessing(host, port, database, username, password)
+
 
     def onclick_generate(self):
         queryTxt = self.query_ta.toPlainText()
