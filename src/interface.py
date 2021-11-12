@@ -37,7 +37,7 @@ class basicWindow(QWidget):
         self.generate_button.clicked.connect(self.onclick_generate)
         grid_layout.addWidget(self.generate_button, 4, 0, 1, 2)
 
-        self.anotate_lbl = QLabel("Anotated Query: ", self)
+        self.anotate_lbl = QLabel("Annotated Query: ", self)
         grid_layout.addWidget(self.anotate_lbl, 5, 0)
 
         self.anotate_ta = QPlainTextEdit(self)
