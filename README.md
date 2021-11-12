@@ -22,9 +22,16 @@
  - Navigate to "Tools" -> "Build"
 
 ## Steps to play with the program
+ - Enter the PostgreSql server credential on the computer.
+   - the default values will be 
+     - Host: localhost 
+     - Database: postgres
+     - Port: 5432
+     - Username: postgres
+     - Password: 123456
  - Enter query in prompt graphic window **Query** text box (**end query with ;**)
  - Click **Generate** button
  - View annotation in **Annotated Query** text box
 
 ### User Interface
-<img width="401" alt="1636691601(1)" src="https://user-images.githubusercontent.com/49228945/141410088-9ab111d6-8331-48eb-bd5e-1b8febac171f.png">
+![image](https://user-images.githubusercontent.com/49228945/141418919-67901ee8-a7c8-4baa-8458-bff05e67398d.png)
